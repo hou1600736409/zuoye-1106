@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <link rel="stylesheet" href="/static/common/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/common/css/bootstrap-table.min.css">
+</head>
+<body>
+<div style="margin: 5px">
+
+    <table>
+        <tr>
+
+            <td><a href="/toLogin">登录</a> </td>
+            <td><a href="/outLogin">退出登录</a> </td>
+
+        </tr>
+        <tr>
+            <td>
+                <button type="button" class="btn btn-primary" onclick="addBook()" shiro:hasPermission="addBook">
+                    添加
+                </button>
+            </td>
+        </tr>
+    </table>
+    <!-- tableList -->
+    <div class="tab-pane">
+        <table class="table table-striped table-hover table-bordered" id="bookList">
+            <thead style="background-color: #BEDDFA">
+
+            </thead>
+        </table>
+    </div>
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        图书信息
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form id = "modalbox">
+                        <div class="row">
+
+                            <div class="col-lg-12">
+                                <div class="form-group input-group">
+                                    <span class="input-group-addon"><span style="color: #f00">*</span> 编号</span>
+                                    <input class="form-control" placeholder="编号" readonly="readonly" name="showId" id="BookId">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12">
+                                <div class="form-group input-group">
+                                    <span class="input-group-addon"><span style="color: #f00">*</span>图书名</span>
+                                    <input  class="form-control" placeholder="图书名" name="bookName" id="bookName">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12">
+                                <div class="form-group input-group">
+                                    <span class="input-group-addon"><span style="color: #f00">*</span>库存</span>
+                                    <input  class="form-control" placeholder="库存" name="bookStore" id="bookStore">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12">
+                                <div class="form-group input-group">
+                                    <span class="input-group-addon"><span style="color: #f00">*</span>价格</span>
+                                    <input  class="form-control" placeholder="价格" name="bookPrice" id="bookPrice">
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="updateBookInfo()">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+    <script src="/static/common/jquery-3.3.1.min.js"></script>
+    <script src="/static/common/bootstrap.min.js"></script>
+    <script src="/static/common/js/bootstrap-table.min.js"></script>
+    <script src="/static/common/js/bootstrap-table-zh-CN.min.js"></script>
+    <script type="text/javascript">
+        //定义url
+        //var initMajor = "/back/selectMajor"; //获取专业
+        var bookList = "/getAllBook";  // 获取所有的学生
+
+        //设置函数变量
+        var bookInfo = {};
+        /*
+            初始化所有操作
+        */
+        $(function () {
+            bookInfo.bookList(); //初始化学生列表
+        })
+
+        /**
+         * 加载 StudentList
+         */
+        bookInfo.bookList = function () {
+            $("#bookList").bootstrapTable({
+                url: bookList,  //请求路径
+                method: 'post',	//请求方式(*)
+                contentType: 'application/x-www-form-urlencoded', //使用from表单方式提交(*)
+                toolbar: '#toolbar', //工具按钮的容器
+                striped: true, //是否启用隔行变色
+                cache: false, //使用是否缓存 默认为true,所以一般情况下需要设置一下为false (*)
+                pagination: true, //是否显示分页(*)
+                sortable: false, //使用启用排序
+                sortOrder: 'desc', //排序方式
+                queryParams: bookInfo.queryParams,//传递参数(*)
+                queryParamsType: '',
+                sidePagination: 'server', // 分页方式有两种 1.client 客户端分页  2.server分页
+                pageNumber: 1, //初始化页数为第一页
+                pageSize: 5,//默认每页加载行数
+                pageList: [10, 25, 50, 100], //每页可选择记录数
+                strictSearch: true,
+                showColumns: false, // 是否显示所有的列
+                showRefresh: false, // 是否显示刷新按钮
+                minimumCountColumns: 2, // 最少允许的列数
+                clickToSelect: true, // 是否启用点击选中行
+                uniqueId: "id", // 每一行的唯一标识，一般为主键列
+                showToggle: false, // 是否显示详细视图和列表视图的切换按钮
+                cardView: false, // 是否显示详细视图
+                detailView: false, // 是否显示父子表
+                smartDisplay: false,
+                onClickRow: function (e, row, element) {
+                    $(".success").removeClass("success");
+                    $(row).addClass("success");
+                },
+                responseHandler: function (result) {
+                    if (result != null) {
+                        return {
+                            'total': result.count,   //总条数
+                            'rows': result  //所有的数据
+                        };
+                    }else {
+                        return {
+                            'total': 0,   //总条数
+                            'rows': []  //所有的数据
+                        }
+                    }
+                },
+                columns:[{
+                    field: 'bookId',
+                    title: "编号"
+                },{
+                    field: 'bookName',
+                    title: "书名"
+                },{
+                    field: "bookStore",
+                    title: "库存"
+                },{
+                    field: "bookPrice",
+                    title: "价格"
+                },{
+                    field:'operation',
+                    events:buttonOperateEvent,
+                    title:'修改/删除',
+                    formatter:function (value,row,index) {
+                        return bookInfo.buttonOperateEvent(value,row,index);
+                    }
+                }]
+            });
+            initTableHeight();
+        }
+        //请求参数
+        bookInfo.queryParams = function (params) {
+            return {
+                "search": "",
+                "searchMajor": "",
+                "pageNumber": params.pageNumber,
+                "pageSize": params.pageSize
+            }
+        }
+        /**
+         * 初始化表格内容高度 修改bootstrap-table 中的height为原始值
+         * 表现效果为分页栏跟随表格
+         */
+        function initTableHeight(){
+            $(".fixed-table-body").css({"height": "auto"});
+        }
+        /*
+        * 按钮来源
+        * */
+        window.buttonOperateEvent ={
+            'click .updateBook':function(e,value,row,index) {
+                bookInfo.subMenulist(row);
+            },
+            'click .deleteBook':function(e,value,row,index) {
+                bookInfo.deleteBook(row);
+            }
+        }
+        bookInfo.buttonOperateEvent = function(value,row,index){
+            var returnButton = [];
+            returnButton.push('<button shiro:hasPermission="updateBook" class = "btn btn-info updateBook" ><a shiro:hasPermission="updateBook">修改</a></button>');
+            returnButton.push('<button shiro:hasPermission="deleteBook" class = "btn btn-warning deleteBook" ><a shiro:hasPermission="deleteBook">删除</a></button>');
+            return returnButton.join('');
+        }
+
+        bookInfo.subMenulist = function (row) {
+            $("#myModal").modal('show');
+            $("#BookId").val(row.bookId);
+            $("#bookName").val(row.bookName);
+            $("#bookStore").val(row.bookStore);
+            $("#bookPrice").val(row.bookPrice);
+        }
+
+        var updateBook ="/updateBook"
+        /*点击模态框确定按钮时关闭模态框*/
+        function updateBookInfo() {
+            /**初始化验证*/
+            $.ajax({
+                url:updateBook,
+                type:"post",
+                data:{
+                    'BookId':$("#BookId").val(),
+                    'bookName':$("#bookName").val(),
+                    'bookStore':$("#bookStore").val(),
+                    'bookPrice':$("#bookPrice").val(),
+                },
+                dataType:"json",
+                contentType: 'application/x-www-form-urlencoded',
+                success:function (restul) {
+
+                }
+            })
+            window.location.reload();
+            $("#myModal").modal('hide');
+        }
+
+        var deletebook = "/deleteBookById"
+        /*点击删除按钮*/
+        bookInfo.deleteBook = function(row){
+            var a = confirm("是否确认删除该项目?");
+            if (a == true){
+                $.ajax({
+                    url:deletebook,
+                    type:"post",
+                    data:{
+                        'bookId':row.bookId,
+                    },
+                    dataType:"json",
+                    contentType: 'application/x-www-form-urlencoded',
+                    success:function (restul) {
+
+                    }
+                })
+                window.location.reload();
+            }
+        }
+        /*点击添加按钮*/
+        function addBook() {
+            $("#myModal").modal('show');
+        }
+    </script>
+</html>

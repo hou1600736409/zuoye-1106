@@ -1,0 +1,17 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aaa.mapper.BookMapper">
+    <select id="getAllBook" resultType="book">
+        select * from book_info
+    </select>
+    <insert id="addBook" parameterType="book">
+        insert into book_info(book_name,book_store,book_price) value (#{bookName},#{bookStore},#{bookPrice})
+    </insert>
+    <update id="updateBook" parameterType="book">
+        update book_info set book_name=#{bookName},book_store=#{bookStore},book_price=#{bookPrice} where book_id = #{bookId}
+    </update>
+    <delete id="deleteBookById" parameterType="int">
+        delete from book_info where book_id = #{bookId}
+    </delete>
+</mapper>
